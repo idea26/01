@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form2Rows>
+    <!-- =============================================== -->
+    <!-- FIRST ROW: Question categories (type chips)    -->
+    <!-- =============================================== -->
+    <typesRow>
+        <type id="slider">📊 numeric slider</type>
+        <type id="conditional">🔄 conditional logic</type>
+        <type id="alternatives">🔘 multiple choice</type>
+        <type id="open">📝 open text</type>
+    </typesRow>
+
+    <!-- =============================================== -->
+    <!-- SECOND ROW: Actual questions                    -->
+    <!-- Valid types: slider, conditional, alternatives, open -->
+    <!-- Add or remove <question> tags as needed         -->
+    <!-- =============================================== -->
+    <questionsRow>
+        <!-- SLIDER QUESTIONS (0-100 scale) -->
+        <question type="slider">How satisfied are you with our product? (0 = not at all, 100 = extremely)</question>
+        <question type="slider">How likely are you to recommend us to a colleague? (0-100)</question>
+        <question type="slider">Rate the user interface intuitiveness (0-100)</question>
+        
+        <!-- CONDITIONAL QUESTIONS (yes/no logic) -->
+        <question type="conditional">If you are a current customer, how long have you been with us?</question>
+        <question type="conditional">Would you like to receive product updates via email?</question>
+        <question type="conditional">If you manage a team, how many members does it have?</question>
+        
+        <!-- ALTERNATIVES (radio buttons / multiple choice) -->
+        <question type="alternatives">Which subscription plan do you prefer?</question>
+        <question type="alternatives">How did you first hear about our company?</question>
+        <question type="alternatives">Which department do you work in?</question>
+        <question type="alternatives">What's your preferred contact method?</question>
+        
+        <!-- OPEN QUESTIONS (free text) -->
+        <question type="open">What features would you like to see in future updates?</question>
+        <question type="open">Describe your biggest challenge in your current role</question>
+        <question type="open">Any additional feedback or suggestions?</question>
+        <question type="open">What made you choose our product over competitors?</question>
+        
+        <!-- MIXED ADDITIONAL QUESTIONS -->
+        <question type="slider">From 1 to 100, how valuable is this feature to you?</question>
+        <question type="conditional">If you attended our webinar, was it helpful?</question>
+        <question type="alternatives">Which industry best describes your company?</question>
+        <question type="open">Please share your success story with our product</question>
+    </questionsRow>
+</form2Rows>
