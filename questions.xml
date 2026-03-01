@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form2Rows>
     <!-- =============================================== -->
-    <!-- FIRST ROW: Question categories                  -->
+    <!-- QUESTION TYPES (First Row)                      -->
     <!-- =============================================== -->
     <typesRow>
         <type id="slider">📊 slider</type>
         <type id="conditional">🔄 conditional</type>
         <type id="alternatives">🔘 multiple choice</type>
         <type id="open">📝 open text</type>
-        <type id="conditional-branch">🎯 branch</type>
+        <type id="conditional-branch">🎯 branch point</type>
     </typesRow>
 
     <!-- =============================================== -->
-    <!-- SECOND ROW: Questions with branching logic      -->
+    <!-- QUESTIONS with Branching Logic (Second Row)     -->
     <!-- First question: name (open)                     -->
     <!-- Second question: branch point (tech/design)     -->
     <!-- Then separate tracks for each branch            -->
     <!-- =============================================== -->
     <questionsRow>
         <!-- QUESTION 1: Name (always shown) -->
-        <question type="open" id="1" field="name" next="2">
+        <question type="open" id="1" field="name" next="2" placeholder="e.g., Alex Johnson">
             What's your name?
         </question>
 
-        <!-- QUESTION 2: Branch point -->
+        <!-- QUESTION 2: Branch point - determines the path -->
         <question type="conditional-branch" id="2" field="interest">
             Are you interested in Technology or Design?
-            <option value="tech" next="3">💻 Technology</option>
-            <option value="design" next="6">🎨 Design</option>
+            <option value="tech" next="3" emoji="🚀">💻 Technology</option>
+            <option value="design" next="6" emoji="✨">🎨 Design</option>
         </question>
 
-        <!-- TECHNOLOGY BRANCH (questions 3-5) -->
-        <question type="slider" id="3" field="yearsCoding" min="0" max="20" branch="tech" next="4">
+        <!-- ========== TECHNOLOGY BRANCH (questions 3-5) ========== -->
+        <question type="slider" id="3" field="yearsCoding" min="0" max="20" unit="years" branch="tech" next="4">
             How many years of coding experience do you have?
         </question>
 
@@ -44,12 +44,11 @@
             <option>Rust</option>
         </question>
 
-        <question type="conditional" id="5" field="aiInterest" conditionField="aiDetails" conditionValue="yes" branch="tech">
+        <question type="conditional" id="5" field="aiInterest" conditionField="aiDetails" conditionValue="yes" branch="tech" placeholder="Tell us about your AI experience...">
             Do you work with AI/ML?
-            <conditional-field id="aiDetails" placeholder="Tell us about your AI experience...">
         </question>
 
-        <!-- DESIGN BRANCH (questions 6-8) -->
+        <!-- ========== DESIGN BRANCH (questions 6-8) ========== -->
         <question type="alternatives" id="6" field="designTool" branch="design" next="7">
             What's your primary design tool?
             <option>Figma</option>
@@ -58,13 +57,12 @@
             <option>Other</option>
         </question>
 
-        <question type="slider" id="7" field="yearsDesign" min="0" max="15" branch="design" next="8">
+        <question type="slider" id="7" field="yearsDesign" min="0" max="15" unit="years" branch="design" next="8">
             How many years of design experience do you have?
         </question>
 
-        <question type="conditional" id="8" field="specialization" conditionField="specializationDetails" conditionValue="ui" branch="design">
+        <question type="conditional" id="8" field="specialization" conditionField="specializationDetails" conditionValue="ui" branch="design" placeholder="Tell us about your design focus...">
             Do you specialize in UI or UX?
-            <conditional-field id="specializationDetails" placeholder="Tell us about your design focus...">
         </question>
     </questionsRow>
 </form2Rows>
