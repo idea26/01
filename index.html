@@ -1,68 +1,944 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<form2Rows>
-    <!-- =============================================== -->
-    <!-- QUESTION TYPES (First Row)                      -->
-    <!-- =============================================== -->
-    <typesRow>
-        <type id="slider">📊 slider</type>
-        <type id="conditional">🔄 conditional</type>
-        <type id="alternatives">🔘 multiple choice</type>
-        <type id="open">📝 open text</type>
-        <type id="conditional-branch">🎯 branch point</type>
-    </typesRow>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typeform · Flashcard Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <!-- =============================================== -->
-    <!-- QUESTIONS with Branching Logic (Second Row)     -->
-    <!-- First question: name (open)                     -->
-    <!-- Second question: branch point (tech/design)     -->
-    <!-- Then separate tracks for each branch            -->
-    <!-- =============================================== -->
-    <questionsRow>
-        <!-- QUESTION 1: Name (always shown) -->
-        <question type="open" id="1" field="name" next="2" placeholder="e.g., Alex Johnson">
-            What's your name?
-        </question>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1f2e 0%, #2d1f3a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
 
-        <!-- QUESTION 2: Branch point - determines the path -->
-        <question type="conditional-branch" id="2" field="interest">
-            Are you interested in Technology or Design?
-            <option value="tech" next="3" emoji="🚀">💻 Technology</option>
-            <option value="design" next="6" emoji="✨">🎨 Design</option>
-        </question>
+        .container {
+            width: 100%;
+            max-width: 680px;
+            position: relative;
+        }
 
-        <!-- ========== TECHNOLOGY BRANCH (questions 3-5) ========== -->
-        <question type="slider" id="3" field="yearsCoding" min="0" max="20" unit="years" branch="tech" next="4">
-            How many years of coding experience do you have?
-        </question>
+        /* Progress bar */
+        .progress-container {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
 
-        <question type="alternatives" id="4" field="favLanguage" branch="tech" next="5">
-            What's your favorite programming language?
-            <option>JavaScript/TypeScript</option>
-            <option>Python</option>
-            <option>Java</option>
-            <option>Go</option>
-            <option>Rust</option>
-        </question>
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
 
-        <question type="conditional" id="5" field="aiInterest" conditionField="aiDetails" conditionValue="yes" branch="tech" placeholder="Tell us about your AI experience...">
-            Do you work with AI/ML?
-        </question>
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+            border-radius: 4px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
 
-        <!-- ========== DESIGN BRANCH (questions 6-8) ========== -->
-        <question type="alternatives" id="6" field="designTool" branch="design" next="7">
-            What's your primary design tool?
-            <option>Figma</option>
-            <option>Adobe XD</option>
-            <option>Sketch</option>
-            <option>Other</option>
-        </question>
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
 
-        <question type="slider" id="7" field="yearsDesign" min="0" max="15" unit="years" branch="design" next="8">
-            How many years of design experience do you have?
-        </question>
+        .question-count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
 
-        <question type="conditional" id="8" field="specialization" conditionField="specializationDetails" conditionValue="ui" branch="design" placeholder="Tell us about your design focus...">
-            Do you specialize in UI or UX?
-        </question>
-    </questionsRow>
-</form2Rows>
+        /* Flashcard container */
+        .flashcard-container {
+            position: relative;
+            min-height: 500px;
+            perspective: 1200px;
+            margin-bottom: 2rem;
+        }
+
+        .flashcard {
+            position: absolute;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 2.5rem;
+            box-shadow: 
+                0 30px 60px -20px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 8px 20px -8px rgba(255, 255, 255, 0.3);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            pointer-events: none;
+            will-change: transform, opacity;
+        }
+
+        .flashcard.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+            position: relative;
+            z-index: 10;
+            animation: cardAppear 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .flashcard.exit {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.95);
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes cardAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Question header */
+        .question-header {
+            margin-bottom: 2rem;
+        }
+
+        .question-number {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ff6b6b;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .branch-tag {
+            background: rgba(255, 107, 107, 0.1);
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: #ff6b6b;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .question-text {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #1a1f2e;
+            line-height: 1.3;
+            letter-spacing: -0.02em;
+        }
+
+        /* Input area */
+        .input-area {
+            margin-bottom: 2rem;
+        }
+
+        /* Text input */
+        .text-input {
+            width: 100%;
+            padding: 1rem 0;
+            border: none;
+            border-bottom: 2px solid #e0e0e0;
+            font-size: 1.2rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #1a1f2e;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-bottom-color: #ff6b6b;
+        }
+
+        .text-input::placeholder {
+            color: #aaa;
+            font-weight: 300;
+        }
+
+        /* Radio group */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: #f5f5f5;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #1a1f2e;
+            font-weight: 500;
+        }
+
+        .radio-option:hover {
+            background: #eeeeee;
+            transform: translateX(8px);
+            border-color: #ff6b6b;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-right: 1rem;
+            accent-color: #ff6b6b;
+        }
+
+        /* Slider */
+        .slider-container {
+            padding: 1rem 0;
+        }
+
+        .slider-block {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slider-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 0.25rem 1rem;
+            border-radius: 40px;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 6px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #ff6b6b 0%, #ff8e8e 100%);
+            -webkit-appearance: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #ff6b6b;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        /* Conditional panel */
+        .conditional-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .conditional-select {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #1a1f2e;
+            font-weight: 500;
+        }
+
+        .conditional-select:hover {
+            border-color: #ff6b6b;
+        }
+
+        .conditional-select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .conditional-field {
+            transition: all 0.3s ease;
+        }
+
+        .conditional-field.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .nav-btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #ff6b6b;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 8px 20px -8px rgba(255, 107, 107, 0.5);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -8px rgba(255, 107, 107, 0.6);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .nav-btn.prev {
+            background: transparent;
+            color: #666;
+            box-shadow: none;
+        }
+
+        .nav-btn.prev:hover:not(:disabled) {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333;
+            transform: none;
+        }
+
+        .nav-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Path indicator */
+        .path-indicator {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-block;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Branch info */
+        .branch-info {
+            background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%);
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            margin: 1rem 0;
+            border-left: 4px solid #ff6b6b;
+            color: #1a1f2e;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .branch-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Loading state */
+        .loading {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 32px;
+            text-align: center;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .flashcard {
+                padding: 2rem;
+            }
+            
+            .question-text {
+                font-size: 1.5rem;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Progress bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-stats">
+                <span class="question-count" id="questionCounter">Question 1 of 8</span>
+                <span id="pathIndicator"></span>
+            </div>
+        </div>
+
+        <!-- Flashcard container -->
+        <div class="flashcard-container" id="flashcardContainer">
+            <div class="loading">Loading your experience...</div>
+        </div>
+
+        <!-- Path indicator (mobile friendly) -->
+        <div style="text-align: center;">
+            <span class="path-indicator" id="mobilePathIndicator">✨ Starting your journey</span>
+        </div>
+    </div>
+
+    <script>
+        // Question data structure with branching logic
+        const questions = [
+            {
+                id: 1,
+                type: 'open',
+                question: "What's your name?",
+                field: 'name',
+                placeholder: "e.g., Alex Johnson",
+                next: 2
+            },
+            {
+                id: 2,
+                type: 'conditional-branch',
+                question: "Are you interested in Technology or Design?",
+                field: 'interest',
+                options: [
+                    { value: 'tech', label: '💻 Technology', emoji: '🚀' },
+                    { value: 'design', label: '🎨 Design', emoji: '✨' }
+                ],
+                branches: {
+                    'tech': {
+                        next: 3,
+                        path: 'Technology Track',
+                        emoji: '🚀'
+                    },
+                    'design': {
+                        next: 6,
+                        path: 'Design Track',
+                        emoji: '✨'
+                    }
+                }
+            },
+            // Technology branch (questions 3-5)
+            {
+                id: 3,
+                type: 'slider',
+                question: "How many years of coding experience do you have?",
+                field: 'yearsCoding',
+                min: 0,
+                max: 20,
+                unit: 'years',
+                branch: 'tech',
+                branchEmoji: '🚀',
+                next: 4
+            },
+            {
+                id: 4,
+                type: 'alternatives',
+                question: "What's your favorite programming language?",
+                field: 'favLanguage',
+                options: ['JavaScript/TypeScript', 'Python', 'Java', 'Go', 'Rust'],
+                branch: 'tech',
+                branchEmoji: '🚀',
+                next: 5
+            },
+            {
+                id: 5,
+                type: 'conditional',
+                question: "Do you work with AI/ML?",
+                field: 'aiInterest',
+                conditionField: 'aiDetails',
+                conditionValue: 'yes',
+                placeholder: "Tell us about your AI experience...",
+                branch: 'tech',
+                branchEmoji: '🚀',
+                next: null
+            },
+            // Design branch (questions 6-8)
+            {
+                id: 6,
+                type: 'alternatives',
+                question: "What's your primary design tool?",
+                field: 'designTool',
+                options: ['Figma', 'Adobe XD', 'Sketch', 'Other'],
+                branch: 'design',
+                branchEmoji: '✨',
+                next: 7
+            },
+            {
+                id: 7,
+                type: 'slider',
+                question: "How many years of design experience do you have?",
+                field: 'yearsDesign',
+                min: 0,
+                max: 15,
+                unit: 'years',
+                branch: 'design',
+                branchEmoji: '✨',
+                next: 8
+            },
+            {
+                id: 8,
+                type: 'conditional',
+                question: "Do you specialize in UI or UX?",
+                field: 'specialization',
+                conditionField: 'specializationDetails',
+                conditionValue: 'ui',
+                placeholder: "Tell us about your design focus...",
+                branch: 'design',
+                branchEmoji: '✨',
+                next: null
+            }
+        ];
+
+        // Store answers
+        const answers = {};
+
+        // Current state
+        let currentQuestionId = 1;
+        let currentBranch = null;
+        let questionHistory = [1];
+
+        // Initialize the form
+        function renderQuestion(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            if (!question) return;
+
+            const container = document.getElementById('flashcardContainer');
+            
+            // Clear loading
+            container.innerHTML = '';
+
+            // Create flashcard
+            const flashcard = document.createElement('div');
+            flashcard.className = 'flashcard active';
+            flashcard.id = `question-${question.id}`;
+
+            // Build question content based on type
+            let content = `
+                <div class="question-header">
+                    <div class="question-number">
+                        <span>${getQuestionNumber(question)}</span>
+                        ${question.branch ? `<span class="branch-tag">${question.branchEmoji} ${question.branch === 'tech' ? 'Technology' : 'Design'}</span>` : ''}
+                    </div>
+                    <div class="question-text">${question.question}</div>
+                </div>
+                <div class="input-area">
+            `;
+
+            switch(question.type) {
+                case 'open':
+                    content += `
+                        <input type="text" 
+                               class="text-input" 
+                               id="field-${question.id}" 
+                               placeholder="${question.placeholder || 'Type your answer here...'}"
+                               value="${answers[question.field] || ''}">
+                    `;
+                    break;
+
+                case 'conditional-branch':
+                    content += `
+                        <div class="radio-group" id="branch-${question.id}">
+                            ${question.options.map(opt => `
+                                <label class="radio-option">
+                                    <input type="radio" 
+                                           name="branch" 
+                                           value="${opt.value}"
+                                           ${answers[question.field] === opt.value ? 'checked' : ''}>
+                                    <span>${opt.label}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+
+                case 'slider':
+                    const defaultValue = answers[question.field] || Math.floor((question.min + question.max) / 2);
+                    content += `
+                        <div class="slider-container">
+                            <div class="slider-block">
+                                <div class="slider-header">
+                                    <span class="slider-value" id="value-${question.id}">${defaultValue}</span>
+                                    <span>${question.unit || ''}</span>
+                                </div>
+                                <input type="range" 
+                                       id="field-${question.id}"
+                                       min="${question.min}" 
+                                       max="${question.max}" 
+                                       value="${defaultValue}"
+                                       step="1">
+                                <div class="slider-labels">
+                                    <span>${question.min}</span>
+                                    <span>${question.max}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'alternatives':
+                    content += `
+                        <div class="radio-group">
+                            ${question.options.map(opt => `
+                                <label class="radio-option">
+                                    <input type="radio" 
+                                           name="field-${question.id}" 
+                                           value="${opt}"
+                                           ${answers[question.field] === opt ? 'checked' : ''}>
+                                    <span>${opt}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+
+                case 'conditional':
+                    const isYes = answers[question.field] === 'yes';
+                    content += `
+                        <div class="conditional-panel">
+                            <select class="conditional-select" id="condition-${question.id}">
+                                <option value="no" ${!isYes ? 'selected' : ''}>❌ No</option>
+                                <option value="yes" ${isYes ? 'selected' : ''}>✅ Yes</option>
+                            </select>
+                            <div class="conditional-field ${!isYes ? 'disabled' : ''}" id="conditional-field-${question.id}">
+                                <input type="text" 
+                                       class="text-input"
+                                       id="field-${question.id}"
+                                       placeholder="${question.placeholder || 'Please specify...'}"
+                                       value="${answers[question.conditionField] || ''}"
+                                       ${!isYes ? 'disabled' : ''}>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            content += `</div>`;
+
+            // Add branch info if applicable
+            if (question.branch) {
+                content += `
+                    <div class="branch-info">
+                        <span class="branch-icon">${question.branchEmoji}</span>
+                        <span>You're on the ${question.branch === 'tech' ? 'Technology' : 'Design'} track</span>
+                    </div>
+                `;
+            }
+
+            // Add navigation buttons
+            content += `
+                <div class="nav-buttons">
+                    ${questionHistory.length > 1 ? `
+                        <button class="nav-btn prev" onclick="previousQuestion()">
+                            <span class="nav-icon">←</span> Previous
+                        </button>
+                    ` : ''}
+                    <button class="nav-btn" onclick="nextQuestion(${question.id})">
+                        ${question.next ? 'Next' : 'Complete'} 
+                        <span class="nav-icon">→</span>
+                    </button>
+                </div>
+            `;
+
+            flashcard.innerHTML = content;
+            
+            // Add fade out class to current active card
+            const activeCard = document.querySelector('.flashcard.active');
+            if (activeCard) {
+                activeCard.classList.remove('active');
+                activeCard.classList.add('exit');
+                
+                // Remove old card after animation
+                setTimeout(() => {
+                    if (activeCard.parentNode) {
+                        activeCard.remove();
+                    }
+                }, 400);
+            }
+
+            container.appendChild(flashcard);
+
+            // Add event listeners for interactive elements
+            setupEventListeners(question);
+
+            // Update progress
+            updateProgress(question.id);
+            updatePathIndicator();
+        }
+
+        function getQuestionNumber(question) {
+            if (question.branch === 'tech') {
+                return `T${question.id - 2}`;
+            } else if (question.branch === 'design') {
+                return `D${question.id - 5}`;
+            }
+            return question.id.toString();
+        }
+
+        function setupEventListeners(question) {
+            if (question.type === 'slider') {
+                const slider = document.getElementById(`field-${question.id}`);
+                const value = document.getElementById(`value-${question.id}`);
+                if (slider && value) {
+                    slider.addEventListener('input', (e) => {
+                        value.textContent = e.target.value;
+                        answers[question.field] = e.target.value;
+                    });
+                    
+                    // Set initial value
+                    answers[question.field] = slider.value;
+                }
+            }
+
+            if (question.type === 'conditional-branch') {
+                const radios = document.querySelectorAll(`#branch-${question.id} input`);
+                radios.forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        answers[question.field] = e.target.value;
+                        updatePathIndicator();
+                    });
+                });
+            }
+
+            if (question.type === 'conditional') {
+                const select = document.getElementById(`condition-${question.id}`);
+                const field = document.getElementById(`conditional-field-${question.id}`);
+                const input = document.getElementById(`field-${question.id}`);
+                
+                if (select && field && input) {
+                    select.addEventListener('change', (e) => {
+                        const isYes = e.target.value === 'yes';
+                        field.classList.toggle('disabled', !isYes);
+                        input.disabled = !isYes;
+                        answers[question.field] = e.target.value;
+                        
+                        if (!isYes) {
+                            answers[question.conditionField] = '';
+                            input.value = '';
+                        }
+                    });
+                }
+            }
+
+            // Save answers for text inputs
+            const textInput = document.getElementById(`field-${question.id}`);
+            if (textInput && question.type !== 'conditional' && question.type !== 'slider') {
+                textInput.addEventListener('input', (e) => {
+                    answers[question.field] = e.target.value;
+                });
+            }
+        }
+
+        function nextQuestion(currentId) {
+            const currentQuestion = questions.find(q => q.id === currentId);
+            
+            // Validate answer
+            if (!validateAnswer(currentQuestion)) {
+                return;
+            }
+            
+            // Save answer based on type
+            if (currentQuestion.type === 'conditional-branch') {
+                const branch = currentQuestion.branches[answers[currentQuestion.field]];
+                currentBranch = answers[currentQuestion.field];
+                
+                // Add to history
+                questionHistory.push(branch.next);
+                currentQuestionId = branch.next;
+                renderQuestion(branch.next);
+                return;
+            }
+
+            // For regular questions, determine next question
+            if (currentQuestion.next) {
+                questionHistory.push(currentQuestion.next);
+                currentQuestionId = currentQuestion.next;
+                renderQuestion(currentQuestion.next);
+            } else {
+                // End of branch
+                showCompletion();
+            }
+        }
+
+        function previousQuestion() {
+            if (questionHistory.length > 1) {
+                // Remove current
+                questionHistory.pop();
+                // Get previous
+                const previousId = questionHistory[questionHistory.length - 1];
+                currentQuestionId = previousId;
+                
+                // Update branch if needed
+                const prevQuestion = questions.find(q => q.id === previousId);
+                if (prevQuestion && prevQuestion.type === 'conditional-branch') {
+                    currentBranch = answers[prevQuestion.field];
+                }
+                
+                renderQuestion(previousId);
+            }
+        }
+
+        function validateAnswer(question) {
+            switch(question.type) {
+                case 'open':
+                    if (!answers[question.field] || answers[question.field].trim() === '') {
+                        alert('Please answer this question before continuing.');
+                        return false;
+                    }
+                    break;
+                    
+                case 'conditional-branch':
+                    if (!answers[question.field]) {
+                        alert('Please select an option to continue.');
+                        return false;
+                    }
+                    break;
+                    
+                case 'alternatives':
+                    if (!answers[question.field]) {
+                        alert('Please select an option to continue.');
+                        return false;
+                    }
+                    break;
+            }
+            return true;
+        }
+
+        function showCompletion() {
+            const container = document.getElementById('flashcardContainer');
+            const activeCard = document.querySelector('.flashcard.active');
+            
+            if (activeCard) {
+                activeCard.classList.remove('active');
+                activeCard.classList.add('exit');
+            }
+            
+            setTimeout(() => {
+                container.innerHTML = `
+                    <div class="flashcard active" style="text-align: center;">
+                        <div class="question-header">
+                            <div class="question-number">✨ COMPLETE</div>
+                            <div class="question-text">Thank you for your answers!</div>
+                        </div>
+                        <div style="margin: 2rem 0; color: #666;">
+                            <p>Your responses have been recorded.</p>
+                            <p style="margin-top: 1rem;">🎉</p>
+                        </div>
+                        <button class="nav-btn" onclick="location.reload()">
+                            Start Over <span class="nav-icon">↻</span>
+                        </button>
+                    </div>
+                `;
+            }, 400);
+            
+            // Update progress to 100%
+            document.getElementById('progressFill').style.width = '100%';
+            document.getElementById('questionCounter').textContent = 'Complete!';
+        }
+
+        function updateProgress(questionId) {
+            const totalQuestions = questions.length;
+            const fill = document.getElementById('progressFill');
+            const percent = (questionId / totalQuestions) * 100;
+            fill.style.width = `${percent}%`;
+            
+            // Update counter
+            const counter = document.getElementById('questionCounter');
+            const currentQuestion = questions.find(q => q.id === questionId);
+            const displayNum = getQuestionNumber(currentQuestion);
+            counter.textContent = `Question ${displayNum} of ${totalQuestions}`;
+        }
+
+        function updatePathIndicator() {
+            const pathIndicator = document.getElementById('pathIndicator');
+            const mobilePathIndicator = document.getElementById('mobilePathIndicator');
+            
+            let pathText = '✨ Starting your journey';
+            if (currentBranch === 'tech') {
+                pathText = '🚀 Technology Track';
+            } else if (currentBranch === 'design') {
+                pathText = '✨ Design Track';
+            }
+            
+            pathIndicator.textContent = pathText;
+            mobilePathIndicator.textContent = pathText;
+        }
+
+        // Initialize with first question
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                renderQuestion(1);
+            }, 100);
+        });
+    </script>
+</body>
+</html>
