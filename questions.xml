@@ -1,47 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form2Rows>
     <!-- =============================================== -->
-    <!-- FIRST ROW: Question categories (type chips)    -->
+    <!-- FIRST ROW: Question categories                  -->
     <!-- =============================================== -->
     <typesRow>
-        <type id="slider">📊 numeric slider</type>
-        <type id="conditional">🔄 conditional logic</type>
+        <type id="slider">📊 slider</type>
+        <type id="conditional">🔄 conditional</type>
         <type id="alternatives">🔘 multiple choice</type>
         <type id="open">📝 open text</type>
+        <type id="conditional-branch">🎯 branch</type>
     </typesRow>
 
     <!-- =============================================== -->
-    <!-- SECOND ROW: Actual questions                    -->
-    <!-- Valid types: slider, conditional, alternatives, open -->
-    <!-- Add or remove <question> tags as needed         -->
+    <!-- SECOND ROW: Questions with branching logic      -->
+    <!-- First question: name (open)                     -->
+    <!-- Second question: branch point (tech/design)     -->
+    <!-- Then separate tracks for each branch            -->
     <!-- =============================================== -->
     <questionsRow>
-        <!-- SLIDER QUESTIONS (0-100 scale) -->
-        <question type="slider">Qué tanto quisieras morirte? (0 = not at all, 100 = extremely)</question>
-        <question type="slider">How likely are you to recommend us to a colleague? (0-100)</question>
-        <question type="slider">Rate the user interface intuitiveness (0-100)</question>
-        
-        <!-- CONDITIONAL QUESTIONS (yes/no logic) -->
-        <question type="conditional">If you are a current customer, how long have you been with us?</question>
-        <question type="conditional">Would you like to receive product updates via email?</question>
-        <question type="conditional">If you manage a team, how many members does it have?</question>
-        
-        <!-- ALTERNATIVES (radio buttons / multiple choice) -->
-        <question type="alternatives">Which subscription plan do you prefer?</question>
-        <question type="alternatives">How did you first hear about our company?</question>
-        <question type="alternatives">Which department do you work in?</question>
-        <question type="alternatives">What's your preferred contact method?</question>
-        
-        <!-- OPEN QUESTIONS (free text) -->
-        <question type="open">What features would you like to see in future updates?</question>
-        <question type="open">Describe your biggest challenge in your current role</question>
-        <question type="open">Any additional feedback or suggestions?</question>
-        <question type="open">What made you choose our product over competitors?</question>
-        
-        <!-- MIXED ADDITIONAL QUESTIONS -->
-        <question type="slider">From 1 to 100, how valuable is this feature to you?</question>
-        <question type="conditional">If you attended our webinar, was it helpful?</question>
-        <question type="alternatives">Which industry best describes your company?</question>
-        <question type="open">Please share your success story with our product</question>
+        <!-- QUESTION 1: Name (always shown) -->
+        <question type="open" id="1" field="name" next="2">
+            What's your name?
+        </question>
+
+        <!-- QUESTION 2: Branch point -->
+        <question type="conditional-branch" id="2" field="interest">
+            Are you interested in Technology or Design?
+            <option value="tech" next="3">💻 Technology</option>
+            <option value="design" next="6">🎨 Design</option>
+        </question>
+
+        <!-- TECHNOLOGY BRANCH (questions 3-5) -->
+        <question type="slider" id="3" field="yearsCoding" min="0" max="20" branch="tech" next="4">
+            How many years of coding experience do you have?
+        </question>
+
+        <question type="alternatives" id="4" field="favLanguage" branch="tech" next="5">
+            What's your favorite programming language?
+            <option>JavaScript/TypeScript</option>
+            <option>Python</option>
+            <option>Java</option>
+            <option>Go</option>
+            <option>Rust</option>
+        </question>
+
+        <question type="conditional" id="5" field="aiInterest" conditionField="aiDetails" conditionValue="yes" branch="tech">
+            Do you work with AI/ML?
+            <conditional-field id="aiDetails" placeholder="Tell us about your AI experience...">
+        </question>
+
+        <!-- DESIGN BRANCH (questions 6-8) -->
+        <question type="alternatives" id="6" field="designTool" branch="design" next="7">
+            What's your primary design tool?
+            <option>Figma</option>
+            <option>Adobe XD</option>
+            <option>Sketch</option>
+            <option>Other</option>
+        </question>
+
+        <question type="slider" id="7" field="yearsDesign" min="0" max="15" branch="design" next="8">
+            How many years of design experience do you have?
+        </question>
+
+        <question type="conditional" id="8" field="specialization" conditionField="specializationDetails" conditionValue="ui" branch="design">
+            Do you specialize in UI or UX?
+            <conditional-field id="specializationDetails" placeholder="Tell us about your design focus...">
+        </question>
     </questionsRow>
 </form2Rows>
