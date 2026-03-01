@@ -17,7 +17,7 @@
     <!-- =============================================== -->
     <questionsRow>
         <!-- SLIDER QUESTIONS (0-100 scale) -->
-        <question type="slider">How satisfied are you with our product? (0 = not at all, 100 = extremely)</question>
+        <question type="slider">Qué tanto quisieras morirte? (0 = not at all, 100 = extremely)</question>
         <question type="slider">How likely are you to recommend us to a colleague? (0-100)</question>
         <question type="slider">Rate the user interface intuitiveness (0-100)</question>
         
